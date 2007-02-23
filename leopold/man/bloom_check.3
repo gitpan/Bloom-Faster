@@ -1,0 +1,67 @@
+.TH "libbloom.so"
+.SH NAME
+libbloom.so \- a library providing routines used for bloom filters.
+.SH SYNOPSIS
+.B #include <bloom.h>
+.sp
+.BI "int bloom_init(bloom *" bloom ",BIGNUM " size ",int " hashes ");
+.sp
+.BI "int bloom_test (bloom *" bloom ",char *" str ",int " mode ");
+.sp
+.BI "int bloom_add (bloom *" bloom ",char *" str ");
+.sp
+.BI "int bloom_check (bloom *" bloom ",char *" str ");
+.sp
+.BI "int bloom_suggestion(struct bloomstat *" stats ", BIGNUM " n ",double " e ");
+.SH DESCRIPTION
+The function 
+.B bloom_init
+initializes the bloom structure pointed to by
+.I bloom
+with a bit vector containing
+.I size
+elements.  BIGNUM is a macro which by default resolves to the "long long" datatype.  On systems not supporting this datatype, BIGNUM can be changed to "long" and the bloom library recompiled.  At insertion, the candidate key will be hashed
+.I hashes
+times.
+.PP
+The function
+.B bloom_test
+tests for the existence of the key
+.I str
+in the bit vector, returning 1 if the key exists. if
+.I mode 
+is set to 
+.B RO,
+nothing else is done, but if set to
+.B SET,
+the key will be inserted into the vector. 
+.PP
+The function
+.B bloom_add
+calls 
+.B bloom_test
+in SET mode, returning 1 if the key is a duplicate and setting the key otherwisee.
+.PP
+The function
+.B bloom_check
+calls
+.B bloom_test 
+in RO mode, returning 1 if the key is a duplicate.
+.PP
+The function
+.B bloom_suggestions
+takes a pointer to a bloomstat struct and sets the values of that struct appropriately for m (size) and k (hashes).  Its input value 
+.I n
+represents the expected number of elements to check for duplicates, while
+.I e
+represents the appropriate probability of error.  Because in most cases we are more likely to know our data size and acceptable error rate than to know the ideal bloom internals, common practice is to call 
+.B bloom_suggestions 
+and then call bloom init with the resulting values.
+
+.SH RETURN VALUE
+.B bloom_init
+returns 0 on success and nonzero on failure.
+.B test_all
+returns 1 if the key exists in the vector and 0 otherwise.
+.B get_suggestion
+returns 0 on success and nonzero on failure.

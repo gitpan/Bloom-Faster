@@ -1,0 +1,2 @@
+jenkins.c: In function 'hash5':
+jenkins.c:130: warning: incompatible implicit declaration of built-in function 'strlen'
