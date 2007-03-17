@@ -4,7 +4,7 @@
 AC_PREREQ(2.59)
 AC_INIT(src/bloom.c)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(leopold,0.9)
+AM_INIT_AUTOMAKE(leopold,1.0)
 
 # Checks for programs.
 AC_PROG_CC
@@ -14,11 +14,11 @@ AC_PROG_LIBTOOL
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h string.h])
+AC_CHECK_HEADERS([stdlib.h string.h math.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([pow strdup])
+AC_CHECK_FUNCS([pow strdup sqrtl])
 AC_OUTPUT(Makefile src/Makefile man/Makefile)

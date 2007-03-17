@@ -23,6 +23,9 @@
 #define BIGCAST long long
 #define TOPLIMIT LONG_MAX
 
+#if !HAVE_SQRTL
+#define sqrtl(val) ((long double)sqrt((double)val))
+#endif
 
 #define SALTRAND 99999999
 #define CONS 1234567

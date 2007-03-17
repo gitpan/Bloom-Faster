@@ -18,6 +18,11 @@ WriteMakefile(
 
 sub MY::postamble {
 '
+	# something strange happens to this Makefile.in file 
+	# when I run "make dist" from the perl installation.  I need
+	# to replace it with the right file from the c build
+	tar -xvzf leopold-1.0.tar.gz
+	cp leopold-1.0/src/Makefile.in leopold/src/Makefile.in
 	cd leopold && ./configure && make
 
 ';	

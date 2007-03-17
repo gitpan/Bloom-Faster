@@ -1,3 +1,4 @@
+Bloom-Faster-1.3.tar.gz
 bloom.foo
 bloom.h
 Changes
@@ -5,12 +6,11 @@ const-c.inc
 const-xs.inc
 fallback/const-c.inc
 fallback/const-xs.inc
-INSTALL
 Faster.xs
+INSTALL
+leopold-1.0.tar.gz
 leopold/aclocal.m4
 leopold/AUTHORS
-leopold/autom4te.cache/output.1
-leopold/autom4te.cache/traces.1
 leopold/ChangeLog
 leopold/config.guess
 leopold/config.h.in
@@ -18,8 +18,6 @@ leopold/config.sub
 leopold/configure
 leopold/configure.in
 leopold/COPYING
-leopold/depcomp
-leopold/foo
 leopold/INSTALL
 leopold/install-sh
 leopold/ltmain.sh
@@ -38,18 +36,13 @@ leopold/NEWS
 leopold/README
 leopold/src/bloom.c
 leopold/src/bloom.h
-leopold/src/foo
-leopold/src/hashes.c
 leopold/src/hashes.h
 leopold/src/jenkins.c
-leopold/src/libbloom.a
 leopold/src/longtest.c
 leopold/src/main.c
 leopold/src/Makefile.am
 leopold/src/Makefile.in
 leopold/src/suggestions.c
-leopold/src/testlong
-leopold/src/testlong.c
 leopold/stamp-h.in
 lib/Bloom/Faster.pm
 Makefile.PL
@@ -59,8 +52,6 @@ MANIFEST			This list of files
 META.yml
 ppport.h
 README
-svn-commit.2.tmp
-svn-commit.tmp
 t/Bloom.t
 tester.plx
 typemap
