@@ -54,7 +54,7 @@ sub AUTOLOAD {
 }
 
 
-our $VERSION = '1.4';
+our $VERSION = '1.6';
 
 
 require XSLoader;
@@ -62,72 +62,106 @@ XSLoader::load('Bloom::Faster', $VERSION);
 
 
 sub new {
-	my ($package,$data)  = @_;
-	my %struct;
-
+    my ($package,$data)  = @_;
+    my %struct;
+    if (! (ref $data)) {
+	$struct{vector} = bdeserialize($data);
+    } else {
 	if (defined($data->{e}) && defined($data->{n})) {
-		print "GO binit_sugg($data->{n},$data->{e})\n";
-		$struct{vector} = binit_sugg($data->{n},$data->{e});
+	    $struct{vector} = binit_sugg($data->{n},$data->{e});
 	} elsif (defined($data->{m}) && defined($data->{k})) {
-		$struct{vector} = binit($data->{m},$data->{k});
+	    $struct{vector} = binit($data->{m},$data->{k},$data->{n},$data->{e});
 	} else {
-		print "when constructing bloom, you must either\n";
-		print "pass hash keys for e and n (error rate and # of elements) or m and k (vector size and # of hash functions)\n";
-		die;
-	}
-
-	if (!defined($struct{vector})) {
-
-		print "init failure\n";
-		return undef;
+	    $! = "invalid arguments to Bloom::Faster";
+	    return undef;
 	}
 	
-	# binit will implicitly set m to a close prime
-	$struct{inserts} = 0;
+	if (!defined($struct{vector})) {
+	    $! = "bloom init failure\n";
+	    return undef;
+	}
+    }
+    # binit will implicitly set m to a close prime
+    ###$struct{inserts} = 0;
+    
+    bless \%struct => $package;
+}
 
-	bless \%struct => $package;
+sub from_file {
+    my ($self, $filename) = @_;
+    bloom_destroyer($self->{vector});
+    $self->{vector} = bdeserialize($filename);
+}
+
+sub to_file {
+    my ($self, $filename) = @_;
+    return bserialize($self->{vector}, $filename);
+
+}
+
+sub vector {
+    my ($self) = @_;	
+    
+    return get_vector($self->{vector});
 }
 
 sub get_suggestion {
-	my ($n,$e) = @_;
-
-	my ($m,$k);
-	$m = $k = 0;
-
-	suggestion($n,$e,$m,$k);
-	
-	return ($m,$k);
+    my ($n,$e) = @_;
+    
+    my ($m,$k);
+    $m = $k = 0;
+    
+    suggestion($n,$e,$m,$k);
+    
+    return ($m,$k);
 }
 
 sub DESTROY {
-	my ($self) = @_;
-	bloom_destroyer($self->{vector});
+    my ($self) = @_;
+    defined($self->{vector}) and bloom_destroyer($self->{vector});
 }
 
 sub get_inserts {
-	my ($self) = @_;
-	return $self->{inserts};
+    my ($self) = @_;
+    ##return $self->{inserts};
+    return binserts($self->{vector});
+}
+
+sub key_count {
+    my ($self) = @_;
+    return $self->get_inserts();
+}
+
+sub capacity {
+    my ($self) = @_;
+    return bcapacity($self->{vector});
+}
+
+sub get_vectorsize {
+    my ($self) = @_;
+    return belements($self->{vector});
 }
 
 sub test {
-	my ($self,$str) = @_;
-	
-	return $self->add($str);
+    my ($self,$str) = @_;
+    
+    return $self->add($str);
 }
 
 sub check {
-	my ($self,$str) = @_;
-
-	$self->{inserts}++;
-	return test_bloom($self->{vector},$str,0);
+    my ($self,$str) = @_;
+    
+    ##$self->{inserts}++;
+    return test_bloom($self->{vector},$str,0);
 }
 
 sub add {
-	my ($self,$str) = @_;
-
-	$self->{inserts}++;
-	return test_bloom($self->{vector},$str,1);
+    my ($self,$str) = @_;
+    
+    ##$self->{inserts}++;
+    return test_bloom($self->{vector},$str,1);
 }
+
 
 
 # Preloaded methods go here.
@@ -173,13 +207,32 @@ see INSTALL
 	}
   }
 
+  if ($bloom->check("foo")) {
+    print " foo has been seen ";
+  }
+
+  # for annoying backwards-compatibility reasons, we also provide a "test" method. 
+  # this method is EQUIVALENT to the add() method and should not be used since it's
+  # extremely confusing.  This method is now deprecated.
+
+
+  # serialize to disk
+  $bloom->to_file("/path/to/file");
+
+  # read from disk
+  my $another_bloom = new Bloom::Faster("/path/to/another/file");
+
+  # manually free the data structures 
+  $bloom->DESTROY;
+ 
+
 =head1 DESCRIPTION
 
-Bloom filters are a lightweight duplicate detection algorithm proposed by Burton Bloom (http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal), with applications in stream data processing, among otheres.  Bloom filters are a very cool thing.  Where occasional false positives are acceptable, bloom filters give us the ability to detect duplicates in a fast and resource-friendly manner.
+Bloom filters are a lightweight duplicate detection algorithm proposed by Burton Bloom (http://portal.acm.org/citation.cfm?id=362692&dl=ACM&coll=portal), with applications in stream data processing, among others.  Bloom filters are a very cool thing.  Where occasional false positives are acceptable, bloom filters give us the ability to detect duplicates in a fast and resource-friendly manner.
 
 The allocation of memory for the bit vector is handled in the c layer, but perl's oo capability handles the garbage collection.  when a Bloom::Faster object goes out of scope, the vector pointed to by the c structure will be free()d.  to manually do this, the DESTROY builtin method can be called.
 
-A bloom filter perl module is currently avaible on CPAN, but it is profoundly slow and cannot handle large vectors.  This alternative uses a more efficient c library which can handle arbitrarily large vectors (up to the maximum size of a "long long" datatype (at least 9223372036854775807).
+A bloom filter perl module is currently avaible on CPAN, but it is profoundly slow and cannot handle large vectors.  This alternative uses a more efficient c library which can handle very large vectors (up to the maximum size of a "long long" datatype (at least 9223372036854775807).
 
 =head2 EXPORT
 
@@ -200,11 +253,11 @@ libbbloom.so
 
 =head1 AUTHOR
 
-Peter Alvaro and Dmitriy Ryaboy, E<lt>palvaro@ask.comE<gt>
+Peter Alvaro and Dmitriy Ryaboy, E<lt>palvaro@cpan.orgE<gt> E<lt>dvryaboy@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 by Peter Alvaro and Dmitriy Ryaboy
+Copyright (C) 2006-2009 by Peter Alvaro and Dmitriy Ryaboy
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.5 or,

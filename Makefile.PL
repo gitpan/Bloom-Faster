@@ -8,21 +8,26 @@ WriteMakefile(
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Bloom/Faster.pm', # retrieve abstract from module
-    #LIBS => '-lbloom',
-       AUTHOR         => 'Peter Alvaro and Dmitriy Ryaboy <peter@ask.com>') : ()),
+       AUTHOR         => 'Peter Alvaro and Dmitriy Ryaboy <peter@eecs.berkeley.edu>') : ()),
     DEFINE            => '', # e.g., '-DHAVE_SOMETHING'
     INC               => '-I.', # e.g., '-I. -I/usr/include/other',
 	# Un-comment this if you add C files to link with later:
-    MYEXTLIB => 'leopold/src/.libs/libbloom.a'
+    ##MYEXTLIB => 'leopold/src/.libs/libbloom.a'
+    'CC'                => $CC,
+    'LD'                => '$(CC)',
+    'OBJECT'          => 'bloom.o suggestions.o jenkins.o Faster.o', # link all the C files too
+    'XSOPT'             => '-C++',
 );
 
-sub MY::postamble {
+##sub MY::postamble {
+sub psyche {
 '
 	# something strange happens to this Makefile.in file 
 	# when I run "make dist" from the perl installation.  I need
 	# to replace it with the right file from the c build
-	tar -xvzf leopold-1.0.tar.gz
-	cp leopold-1.0/src/Makefile.in leopold/src/Makefile.in
+	tar -xvzf leopold-1.1.tar.gz
+	cp -f leopold-1.1/src/Makefile.in leopold/src/Makefile.in
+	##cd leopold && CFLAGS=-fPIC ./configure && CFLAGS=-fPIC make
 	cd leopold && ./configure && make
 
 ';	

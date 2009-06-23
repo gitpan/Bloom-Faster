@@ -5,10 +5,12 @@
 
 # change 'tests => 2' to 'tests => last_test_to_print';
 
-use Test::More tests => 6;
+use Test::More tests => 10;
 $ENV{TEST_VERBOSE} = 1;
 
-BEGIN { use_ok('Bloom::Faster') };
+BEGIN { 
+	use_ok('Bloom::Faster'); 
+};
 
 
 my $fail = 0;
@@ -35,7 +37,10 @@ my $bloom = new Bloom::Faster({n=>($cnt * $afth),e=>0.00001});
 ok($bloom,"create object");
 my $dups = 0;
 
-open(FILE,">/tmp/test.1");
+my $tempfile = "bloomtest.$$";
+
+
+open(FILE,">$tempfile");
 my $i;
 my $firststr = "peter alvaro";
 print FILE "$firststr\n";
@@ -46,16 +51,21 @@ for ($i=0;$i < $cnt; $i++) {
 }
 close FILE;
 
-open (FILE,"/tmp/test.1");
+open (FILE,$tempfile);
+my $tests;
 while (<FILE>) {
 	chomp;
 	if ($bloom->add($_)) {
 		$dups++;
 	}
+	$tests++;
 }
 close(FILE);
 # those should have been unique.  test this assumption.
 ok(($dups == 0),"nodups");
+
+# tests should equal cnt
+#ok(($tests == $cnt),"alltests");
 
 # a repeat of the first string seen
 ok(($bloom->add($firststr) == 1),"ok, dup");
@@ -63,9 +73,21 @@ ok(($bloom->add($firststr) == 1),"ok, dup");
 # a repeat of the last string seen
 ok(($bloom->add($str)),"ok, dup2");
 
+## can we serialize to the file? 
+ok(($bloom->to_file($tempfile) == 1), "ok, tofile");
 
 #$bloom->DESTROY;
-#ok(undef($bloom),"undef");
+
+## try to read from the file
+my $newbloom;
+ok(($newbloom = new Bloom::Faster($tempfile)), "ok, reading");
+
+## verify that the last string and first strings are still there
+ok( ($newbloom->add($str) && $newbloom->add($firststr)), "ok, first and last still there");
+
+## verify capacity is the same
+ok (( $newbloom->capacity() == $bloom->capacity()), "ok, capacity regained");
+unlink($tempfile);
 
 
 

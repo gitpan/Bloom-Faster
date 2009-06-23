@@ -7,7 +7,7 @@
 
 int get_suggestion(struct bloomstat *stats, BIGNUM n,double e)
 {
-        stats->n = n;
+        stats->capacity = n;
 	//fprintf(stderr,"n is %ld %ld\n",(long)stats->n,(long)n);
         stats->e = e;
         get_rec(stats);
@@ -26,15 +26,16 @@ BIGNUM find_close_prime(BIGNUM m) {
 void get_rec ( struct bloomstat *stat) {
   /* assuming perfect number of cells, k directly depends on e */
   //printf("start get rec with %ld %f\n",(long)stat->n,stat->e);
-  stat->k = (int) log(stat->e)/log(0.5);
-  stat->m = find_close_prime((BIGNUM) 13*stat->n*(BIGNUM)stat->k/(BIGNUM)9);
+  stat->ideal_hashes = (int) log(stat->e)/log(0.5);
+  stat->elements = find_close_prime((BIGNUM) 13*stat->capacity*(BIGNUM)stat->ideal_hashes/(BIGNUM)9);
   /*
   recalculate k with the actual m, not the ideal 
   wouldn't need to if it wasn't prime, but that causes problems
   for hash algs
   */
-  stat->k = 9*stat->m/(13*stat->n);
-  printf("m is %ld (from %ld),k is %d\n",(long)stat->m,(long)stat->n,stat->k);
+  stat->ideal_hashes = 9*stat->elements/(13*stat->capacity);
+  printf("m is %ld (from %ld),k is %d\n",(long)stat->elements,
+	 (long)stat->capacity,stat->ideal_hashes);
 
 }
 

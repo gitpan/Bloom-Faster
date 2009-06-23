@@ -1,3 +1,4 @@
+#include <string.h>
 #include "bloom.h"
 
 typedef  unsigned long  int  ub4;   /* unsigned 4-byte quantities */

@@ -1,8 +1,9 @@
-#include <limits.h>
 
 #ifndef _BLOOM
 #define _BLOOM
-#endif
+
+
+#include <limits.h>
 
 /* leopold, a c implementation of bloom filters 
  *
@@ -47,29 +48,31 @@ typedef struct
 	int cnt;
 } randoms;
 
+struct bloomstat
+{
+	BIGNUM elements; /* size of array */
+	int ideal_hashes; /* num hash functions */
+	BIGNUM capacity; /* number of elements */
+	float e; /* max error rate */
+} ;
+
 typedef struct
 {
 	char *vector;
 	hash_t hash;
-	BIGNUM elements;
-	int ideal_hashes;
+ 	BIGNUM inserts;
+  //	int ideal_hashes;
+        struct bloomstat stat;
 	randoms random_nums;
 } bloom;
 
-struct bloomstat {
-	BIGNUM m; /* size of array */
-	int k; /* num hash functions */
-	BIGNUM n; /* number of elements */
-	float e; /* max error rate */
-};
-
-int verbose;
+//int verbose;
 
 
 /* these are modes to test_all() */
 #define RO 0
 #define SET 1
-#define VERBOSE 2
+#define BVERBOSE 2
 
 /* errors */
 
@@ -80,11 +83,14 @@ int verbose;
 BIGNUM mkprime(BIGNUM startval);
 
 /* public interface */
-int bloom_init(bloom *bloom,BIGNUM size,int hashes,hash_t hash,int flags);
+int bloom_init(bloom *bloom,BIGNUM size,BIGNUM capacity, float error_rate,
+	       int hashes,hash_t hash,int flags);
 int bloom_check(bloom *bloom,char *str);
 int bloom_add(bloom *bloom,char *str);
 int bloom_test(bloom *bloom,char *str,int MODE);
 void bloom_destroy(bloom *bloom);
+int bloom_serialize(bloom *bloom, char *fname);
+bloom * bloom_deserialize(char *fname);
 
 /* private interface */
 int sketchy_randoms(randoms *rands,int cnt);
@@ -97,5 +103,7 @@ int bloom_hash_old(bloom *bloom,char *str, int i);
 BIGNUM find_close_prime(BIGNUM m);
 int get_suggestion(struct bloomstat *stats, BIGNUM n,double e);
 int is_prime(BIGNUM m);
-void get_rec ( struct bloomstat *stat);
+void get_rec (struct bloomstat *stat);
 BIGNUM report_capacity(bloom *bloom);
+
+#endif
