@@ -54,7 +54,7 @@ sub AUTOLOAD {
 }
 
 
-our $VERSION = '1.6.2';
+our $VERSION = '1.7';
 
 
 require XSLoader;
