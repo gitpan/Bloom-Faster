@@ -14,8 +14,8 @@ Bloomer *
 binit(size,hashes,capacity,error_rate)
 	unsigned long size
 	int hashes
-        unsigned long capacity
-        float error_rate
+	unsigned long capacity
+	float error_rate
 PREINIT: 
 	bloom *newbloom;
 CODE:

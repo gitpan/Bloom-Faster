@@ -21,6 +21,7 @@ int bloom_init(bloom *bloom,BIGNUM size,BIGNUM capacity, float error_rate,
 		 * if we have been requested to do otherwise */
 		bloom->stat.elements = find_close_prime(size);
 	}
+	
 	if (hashes < 1) {
 		fprintf(stderr,"hashes was %d,size %ld\n",hashes,size);
 		return -1;
@@ -34,9 +35,20 @@ int bloom_init(bloom *bloom,BIGNUM size,BIGNUM capacity, float error_rate,
 		bloom->hash = hash;
 	}
 	bloom->inserts = 0;
-	bloom->stat.capacity = capacity;
-	bloom->stat.e = error_rate;
 
+	/**
+	If error rate and capacity were not specified, but size and num hashes were,
+	we can calculate the missing elements.
+	**/
+  if (capacity == 0 || error_rate == 0) {
+	  // From wikipedia, num hashes k that minimizes probability of error is k =~ (0.7 m) / n
+	  // Therefore n =~ (0.7 m) / k
+		bloom->stat.capacity = 0.7 * bloom->stat.elements / hashes;
+		bloom->stat.e = powf(2.0, (float) -1 * hashes);
+	} else {
+		bloom->stat.capacity = capacity;
+		bloom->stat.e = error_rate;
+	}
 	if ((flags & BVERBOSE) == BVERBOSE) {
 		fprintf(stderr,"bloom_init(%ld,%d) => (%ld,%d)\n",(BIGCAST)size,hashes,(BIGCAST)bloom->stat.elements,bloom->stat.ideal_hashes);
 		//verbose = 1;

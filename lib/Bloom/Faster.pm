@@ -54,7 +54,7 @@ sub AUTOLOAD {
 }
 
 
-our $VERSION = '1.6';
+our $VERSION = '1.6.2';
 
 
 require XSLoader;
@@ -70,6 +70,7 @@ sub new {
 	if (defined($data->{e}) && defined($data->{n})) {
 	    $struct{vector} = binit_sugg($data->{n},$data->{e});
 	} elsif (defined($data->{m}) && defined($data->{k})) {
+			$data->{n} = $data->{e} = 0;
 	    $struct{vector} = binit($data->{m},$data->{k},$data->{n},$data->{e});
 	} else {
 	    $! = "invalid arguments to Bloom::Faster";
@@ -232,8 +233,7 @@ Bloom filters are a lightweight duplicate detection algorithm proposed by Burton
 
 The allocation of memory for the bit vector is handled in the c layer, but perl's oo capability handles the garbage collection.  when a Bloom::Faster object goes out of scope, the vector pointed to by the c structure will be free()d.  to manually do this, the DESTROY builtin method can be called.
 
-A bloom filter perl module is currently avaible on CPAN, but it is profoundly slow and cannot handle large vectors.  This alternative uses a more efficient c library which can handle very large vectors (up to the maximum size of a "long long" datatype (at least 9223372036854775807).
-
+A bloom filter perl module is currently avaible on CPAN, but it is slow and cannot handle large vectors.  This alternative uses a more efficient c library which can handle very large vectors.
 =head2 EXPORT
 
 None by default.
